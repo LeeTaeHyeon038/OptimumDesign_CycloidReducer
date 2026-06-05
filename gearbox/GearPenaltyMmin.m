@@ -1,0 +1,15 @@
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Król
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyMmin(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    M_MIN=0.5;
+    if m<M_MIN
+       %m=(M_MIN-m)^2;
+       m=(GearVolume(r, e, zk, zs, q, M_MIN, N, h, Rs, Rh, zi)...
+           -GearVolume(r, e, zk, zs, q, m, N, h, Rs, Rh, zi))^2;       
+    else
+       m=0;
+    end
+    pen=m;
+end

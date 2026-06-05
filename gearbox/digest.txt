@@ -1,0 +1,1912 @@
+Directory structure:
+└── gearbox/
+    ├── GearAlpha.m
+    ├── GearDraw.m
+    ├── GearGetConstant.m
+    ├── GearJac.m
+    ├── GearNewton.m
+    ├── GearObjective.m
+    ├── GearPenaltybmin.m
+    ├── GearPenaltybminJac.m
+    ├── GearPenaltyEmin.m
+    ├── GearPenaltyEminJac.m
+    ├── GearPenaltyHmin.m
+    ├── GearPenaltyHminJac.m
+    ├── GearPenaltyMmax.m
+    ├── GearPenaltyMmaxJac.m
+    ├── GearPenaltyMmin.m
+    ├── GearPenaltyMminJac.m
+    ├── GearPenaltyqmin.m
+    ├── GearPenaltyqminJac.m
+    ├── GearPenaltyRhmin.m
+    ├── GearPenaltyRhminJac.m
+    ├── GearPenaltyRhonMax.m
+    ├── GearPenaltyRhonMaxJac.m
+    ├── GearPenaltyRhonMin.m
+    ├── GearPenaltyRhonMinJac.m
+    ├── GearPenaltyRhopMax.m
+    ├── GearPenaltyRhopMaxJac.m
+    ├── GearPenaltyRhopMin.m
+    ├── GearPenaltyRhopMinJac.m
+    ├── GearPenaltyRsmin.m
+    ├── GearPenaltyRsminJac.m
+    ├── GearPenaltyRwmax.m
+    ├── GearPenaltyRwmaxJac.m
+    ├── GearPenaltyRwmin.m
+    ├── GearPenaltyRwminJac.m
+    ├── GearPenaltyStressExNeg.m
+    ├── GearPenaltyStressExNegJac.m
+    ├── GearPenaltyStressExPos.m
+    ├── GearPenaltyStressExPosJac.m
+    ├── GearPenaltyStressIn.m
+    ├── GearPenaltyStressInJac.m
+    ├── GearPenaltyVmin.m
+    ├── GearPenaltyVminJac.m
+    ├── GearRho.m
+    ├── GearRhoBis.m
+    ├── GearRhode.m
+    ├── GearRhodm.m
+    ├── GearRhodq.m
+    ├── GearRhoPrim.m
+    ├── GearRosenbrock.m
+    ├── GearRosenbrockJac.m
+    ├── GearRun.m
+    ├── GearSimpleLevMar.m
+    ├── GearSteepestDescent.m
+    ├── GearStressExdbNeg.m
+    ├── GearStressExdbPos.m
+    ├── GearStressExdeNeg.m
+    ├── GearStressExdePos.m
+    ├── GearStressExdhNeg.m
+    ├── GearStressExdhPos.m
+    ├── GearStressExdmNeg.m
+    ├── GearStressExdmPos.m
+    ├── GearStressExdqNeg.m
+    ├── GearStressExdqPos.m
+    ├── GearStressExNeg.m
+    ├── GearStressExPos.m
+    ├── GearStressIn.m
+    ├── GearStressIndh.m
+    ├── GearStressIndRh.m
+    ├── GearStressIndRs.m
+    ├── GearStressIndRw.m
+    ├── GearTestRosenbrock.m
+    ├── GearVolume.m
+    ├── GearVolumedb.m
+    ├── GearVolumede.m
+    ├── GearVolumedh.m
+    ├── GearVolumedm.m
+    ├── GearVolumedq.m
+    ├── GearVolumedRh.m
+    └── GearVolumedRs.m
+
+================================================
+FILE: GearAlpha.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+
+function alpharet=GearAlpha(e, zk, zs, m, q, initalpha)
+    prev=initalpha-GearRhoPrim(e, zk, zs, m, q, initalpha)/GearRhoBis(e, zk, zs, m, q, initalpha);
+    next=prev-GearRhoPrim(e, zk, zs, m, q, prev)/GearRhoBis(e, zk, zs, m, q, prev);
+    while(abs(prev-next)>1e-6)
+        prev=next-GearRhoPrim(e, zk, zs, m, q, next)/GearRhoBis(e, zk, zs, m, q, next);
+        next=prev-GearRhoPrim(e, zk, zs, m, q, prev)/GearRhoBis(e, zk, zs, m, q, prev);
+    end
+    alpharet=next;    
+end
+
+
+================================================
+FILE: GearDraw.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function y=GearDraw(xfin, xp)
+    zs=15;
+    zk=16;
+    t=linspace(0, 2*pi, 600);
+    xc=(xfin(1)*(zs+1)/xfin(3))*cos(t)+xfin(1)*cos(zk*t)-xfin(2)*cos(t+atan(sin(zs*t)./(1/xfin(3)+cos(zs*t))));
+    yc=(xfin(1)*(zs+1)/xfin(3))*sin(t)+xfin(1)*sin(zk*t)-xfin(2)*sin(t+atan(sin(zs*t)./(1/xfin(3)+cos(zs*t))));
+    plot(xc, yc, '-b');
+    for i=1:8
+        alpha=(i-1)*2*pi/8;
+        xpp=xfin(5)*cos(t);
+        ypp=xfin(5)*sin(t)+xfin(7);
+        A=[cos(alpha), -sin(alpha); sin(alpha), cos(alpha)]*[xpp;ypp];
+        xpp=A(1,:);
+        ypp=A(2,:);
+        hold on;
+        plot(xpp, ypp, '--b');
+    end
+    for i=1:8
+        alpha=(i-1)*2*pi/8;
+        xpp=xfin(6)*cos(t);
+        ypp=xfin(6)*sin(t)+xfin(7);
+        A=[cos(alpha), -sin(alpha); sin(alpha), cos(alpha)]*[xpp;ypp];
+        xpp=A(1,:);
+        ypp=A(2,:);
+        hold on;
+        plot(xpp, ypp, '-b');
+    end
+    for i=1:16
+        alpha=(i-1)*2*pi/16;
+        xpp=xfin(2)*cos(t);
+        ypp=xfin(2)*sin(t)+xfin(1)*(zs+1)/xfin(3);
+        A=[cos(alpha), -sin(alpha); sin(alpha), cos(alpha)]*[xpp;ypp];
+        xpp=A(1,:);
+        ypp=A(2,:);
+        hold on;
+        plot(xpp, ypp, '-b');
+    end  
+    
+    %Draw gear before optimization
+    xc=(xp(1)*(1+zs)/xp(3))*cos(t)+xp(1)*cos(16*t)-xp(2)*cos(t+atan(sin(zs*t)./(1/xp(3)+cos(zs*t))));
+    yc=(xp(1)*(1+zs)/xp(3))*sin(t)+xp(1)*sin(16*t)-xp(2)*sin(t+atan(sin(zs*t)./(1/xp(3)+cos(zs*t))));
+    hold on;
+    plot(xc, yc, '-r');
+    for i=1:8
+        alpha=(i-1)*2*pi/8;
+        xpp=xp(5)*cos(t);
+        ypp=xp(5)*sin(t)+xp(7);
+        A=[cos(alpha), -sin(alpha); sin(alpha), cos(alpha)]*[xpp;ypp];
+        xpp=A(1,:);
+        ypp=A(2,:);
+        hold on;
+        plot(xpp, ypp, '--r');
+    end
+    for i=1:8
+        alpha=(i-1)*2*pi/8;
+        xpp=xp(6)*cos(t);
+        ypp=xp(6)*sin(t)+xp(7);
+        A=[cos(alpha), -sin(alpha); sin(alpha), cos(alpha)]*[xpp;ypp];
+        xpp=A(1,:);
+        ypp=A(2,:);
+        hold on;
+        plot(xpp, ypp, '-r');
+    end
+    for i=1:16
+        alpha=(i-1)*2*pi/16;
+        xpp=xp(2)*cos(t);
+        ypp=xp(2)*sin(t)+xp(1)*(zs+1)/xp(3);
+        A=[cos(alpha), -sin(alpha); sin(alpha), cos(alpha)]*[xpp;ypp];
+        xpp=A(1,:);
+        ypp=A(2,:);
+        hold on;
+        plot(xpp, ypp, '-r');
+    end        
+end
+
+
+================================================
+FILE: GearGetConstant.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function cnst=GearGetConstant(n)
+    switch(n)
+        case 1 
+            cnst=400; %MAX_CONTACT_STRESS
+        case 2 
+            cnst=9; %PMIN_RHO
+        case 3
+            cnst=100; %PMAX_RHO
+        case 4
+            cnst=-2; %NMIN_RHO
+        case 5
+            cnst=-100; %NMAX_RHO
+        case 6
+            cnst=1000; %MIN_VOL
+        otherwise
+            cnst=-1;
+    end
+end
+
+
+
+================================================
+FILE: GearJac.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function [jac]=GearJac(x)
+
+    zs=15;
+    zk=16;
+    r=x(1)*(zs+1)/x(3);
+    e=x(1);
+    q=x(2);
+    m=x(3);
+    N=1000;
+    h=x(4);
+    Rs=x(5);
+    Rh=x(6);
+    zi=8;
+    Mh=1550;
+    nu1=0.3;
+    nu2=0.3;
+    Emod1=200000;
+    Emod2=200000;
+    Rw=x(7);   
+    
+    alp=GearAlpha(e, zk, zs, m, q, 0);
+    rho=GearRho(e, zk, zs, m, q, alp);
+    if rho<0
+        min_alpha=alp;
+        max_alpha=alp+pi/zs;
+    else
+        max_alpha=alp;
+        min_alpha=alp+pi/zs;
+    end  
+    
+    jac=[GearVolumede(r, e, zk, zs, q, m, N, h, Rs, Rh, zi),...
+         GearVolumedq(r, e, zk, zs, q, m, N, h, Rs, Rh, zi),...
+         GearVolumedm(r, e, zk, zs, q, m, N, h, Rs, Rh, zi),...
+         GearVolumedh(r, e, zk, zs, q, m, N, h, Rs, Rh, zi),...
+         GearVolumedRs(r, e, zk, zs, q, m, N, h, Rs, Rh, zi),...
+         GearVolumedRh(r, e, zk, zs, q, m, N, h, Rs, Rh, zi),...
+         0;
+         GearStressExdePos(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, max_alpha),...
+         GearStressExdqPos(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, max_alpha),...
+         GearStressExdmPos(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, max_alpha),...
+         GearStressExdhPos(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, max_alpha),...
+         0,...
+         0,...
+         0;
+         GearStressExdeNeg(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, min_alpha),...
+         GearStressExdqNeg(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, min_alpha),...
+         GearStressExdmNeg(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, min_alpha),...
+         GearStressExdhNeg(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, min_alpha),...
+         0,...
+         0,...
+         0;
+         0,...
+         0,...
+         0,...
+         GearStressIndh(Rs, Mh, zs, Rw, Rh, h, zi, nu1, Emod1, nu2, Emod2),...
+         GearStressIndRs(Rs, Mh, zs, Rw, Rh, h, zi, nu1, Emod1, nu2, Emod2),...
+         GearStressIndRh(Rs, Mh, zs, Rw, Rh, h, zi, nu1, Emod1, nu2, Emod2),...
+         GearStressIndRw(Rs, Mh, zs, Rw, Rh, h, zi, nu1, Emod1, nu2, Emod2);
+         GearPenaltyVminJac(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)*GearVolumede(r, e, zk, zs, q, m, N, h, Rs, Rh, zi), ...
+         GearPenaltyVminJac(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)*GearVolumedq(r, e, zk, zs, q, m, N, h, Rs, Rh, zi), ...
+         GearPenaltyVminJac(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)*GearVolumedm(r, e, zk, zs, q, m, N, h, Rs, Rh, zi), ...
+         GearPenaltyVminJac(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)*GearVolumedh(r, e, zk, zs, q, m, N, h, Rs, Rh, zi), ...
+         GearPenaltyVminJac(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)*GearVolumedRs(r, e, zk, zs, q, m, N, h, Rs, Rh, zi), ...
+         GearPenaltyVminJac(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)*GearVolumedRh(r, e, zk, zs, q, m, N, h, Rs, Rh, zi), ...
+         0;
+         GearPenaltyEminJac(r, e, zk, zs, q, m, N, h, Rs, Rh, zi), 0, 0, 0, 0, 0, 0;
+         0, 0, GearPenaltyMminJac(r, e, zk, zs, q, m, N, h, Rs, Rh, zi), 0, 0, 0, 0;
+         0, 0, GearPenaltyMmaxJac(r, e, zk, zs, q, m, N, h, Rs, Rh, zi), 0, 0, 0, 0;
+         0, 0, 0, GearPenaltyHminJac(r, e, zk, zs, q, m, N, h, Rs, Rh, zi), 0, 0, 0;
+         0, 0, 0, 0, GearPenaltyRsminJac(r, e, zk, zs, q, m, N, h, Rs, Rh, zi), 0, 0;
+         0, 0, 0, 0, 0, GearPenaltyRhminJac(r, e, zk, zs, q, m, N, h, Rs, Rh, zi), 0;
+         0, GearPenaltyqminJac(r, e, zk, zs, q, m, N, h, Rs, Rh, zi), 0, 0, 0, 0, 0;
+         0, 0, 0, 0, 0, 0, GearPenaltyRwminJac(zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2);
+         0, 0, 0, 0, 0, 0, GearPenaltyRwmaxJac(r, zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2);
+         -GearPenaltyRhopMinJac(e, zk, zs, m, q)*GearRhode(e, zk, zs, m, q, max_alpha), ... 
+         -GearPenaltyRhopMinJac(e, zk, zs, m, q)*GearRhodq(e, zk, zs, m, q, max_alpha),...
+         -GearPenaltyRhopMinJac(e, zk, zs, m, q)*GearRhodm(e, zk, zs, m, q, max_alpha), ...
+         0, 0, 0, 0;
+         GearPenaltyRhopMaxJac(e, zk, zs, m, q)*GearRhode(e, zk, zs, m, q, max_alpha), ...
+         GearPenaltyRhopMaxJac(e, zk, zs, m, q)*GearRhodq(e, zk, zs, m, q, max_alpha), ...
+         GearPenaltyRhopMaxJac(e, zk, zs, m, q)*GearRhodm(e, zk, zs, m, q, max_alpha), ...
+         0, 0, 0, 0;
+         GearPenaltyRhonMinJac(e, zk, zs, m, q)*GearRhode(e, zk, zs, m, q, min_alpha), ...
+         GearPenaltyRhonMinJac(e, zk, zs, m, q)*GearRhodq(e, zk, zs, m, q, min_alpha), ...
+         GearPenaltyRhonMinJac(e, zk, zs, m, q)*GearRhodm(e, zk, zs, m, q, min_alpha), ...
+         0, 0, 0, 0;
+         -GearPenaltyRhonMaxJac(e, zk, zs, m, q)*GearRhode(e, zk, zs, m, q, min_alpha), ...
+         -GearPenaltyRhonMaxJac(e, zk, zs, m, q)*GearRhodq(e, zk, zs, m, q, min_alpha), ...
+         -GearPenaltyRhonMaxJac(e, zk, zs, m, q)*GearRhodm(e, zk, zs, m, q, min_alpha), ...
+         0, 0, 0, 0;
+         GearPenaltyStressExPosJac(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2)*GearStressExdePos(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, max_alpha), ...
+         GearPenaltyStressExPosJac(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2)*GearStressExdqPos(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, max_alpha), ...
+         GearPenaltyStressExPosJac(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2)*GearStressExdmPos(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, max_alpha), ...
+         GearPenaltyStressExPosJac(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2)*GearStressExdhPos(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, max_alpha), ...
+         0, ...
+         0, ...
+         0;
+         GearPenaltyStressExNegJac(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2)*GearStressExdeNeg(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, min_alpha), ...
+         GearPenaltyStressExNegJac(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2)*GearStressExdqNeg(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, min_alpha), ...
+         GearPenaltyStressExNegJac(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2)*GearStressExdmNeg(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, min_alpha), ...
+         GearPenaltyStressExNegJac(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2)*GearStressExdhNeg(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, min_alpha), ...
+         0, ...
+         0, ...
+         0;         
+         0, ...
+         0, ...
+         0, ...
+         GearPenaltyStressInJac(zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2)*GearStressIndh(Rs, Mh, zs, Rw, Rh, h, zi, nu1, Emod1, nu2, Emod2), ...
+         GearPenaltyStressInJac(zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2)*GearStressIndRs(Rs, Mh, zs, Rw, Rh, h, zi, nu1, Emod1, nu2, Emod2), ...
+         GearPenaltyStressInJac(zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2)*GearStressIndRh(Rs, Mh, zs, Rw, Rh, h, zi, nu1, Emod1, nu2, Emod2), ...
+         GearPenaltyStressInJac(zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2)*GearStressIndRw(Rs, Mh, zs, Rw, Rh, h, zi, nu1, Emod1, nu2, Emod2)];
+     
+end
+
+
+================================================
+FILE: GearNewton.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function n=GearNewton(e, zk, zs, m, alpha)
+    prev=alpha-GearRho(e, zk, zs, m, alpha)/GearSymbolicsDiff(e, zk, zs, m, alpha);
+    next=prev-GearRho(e, zk, zs, m, prev)/GearSymbolicsDiff(e, zk, zs, m, prev);
+    while(abs(prev-next)>1e-6)
+        prev=next-GearRho(e, zk, zs, m, next)/GearSymbolicsDiff(e, zk, zs, m, next);
+        next=prev-GearRho(e, zk, zs, m, prev)/GearSymbolicsDiff(e, zk, zs, m, prev);
+    end
+    n=next;
+end
+
+
+================================================
+FILE: GearObjective.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function [vsobj]=GearObjective(x)
+    zs=15;
+    zk=16;
+    r=x(1)*(zs+1)/x(3);
+    e=x(1);
+    q=x(2);
+    m=x(3);
+    N=1000;
+    h=x(4);
+    Rs=x(5);
+    Rh=x(6);
+    zi=8;
+    Mh=1550;
+    nu1=0.3;
+    nu2=0.3;
+    Emod1=200000;
+    Emod2=200000;
+    Rw=x(7);
+    
+    alp=GearAlpha(e, zk, zs, m, q, 0);
+    rho=GearRho(e, zk, zs, m, q, alp);
+    if rho<0
+        min_alpha=alp;
+        max_alpha=alp+pi/zs;
+    else
+        max_alpha=alp;
+        min_alpha=alp+pi/zs;
+    end    
+    
+    vsobj=[GearVolume(r, e, zk, zs, q, m, N, h, Rs, Rh, zi);
+           GearStressExPos(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, max_alpha);
+           GearStressExNeg(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, min_alpha);
+           GearStressIn(zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2);
+           GearPenaltyVmin(r, e, zk, zs, q, m, N, h, Rs, Rh, zi);
+           GearPenaltyEmin(r, e, zk, zs, q, m, N, h, Rs, Rh, zi);
+           GearPenaltyMmin(r, e, zk, zs, q, m, N, h, Rs, Rh, zi);
+           GearPenaltyMmax(r, e, zk, zs, q, m, N, h, Rs, Rh, zi);
+           GearPenaltyHmin(r, e, zk, zs, q, m, N, h, Rs, Rh, zi);
+           GearPenaltyRsmin(r, e, zk, zs, q, m, N, h, Rs, Rh, zi);
+           GearPenaltyRhmin(r, e, zk, zs, q, m, N, h, Rs, Rh, zi);
+           GearPenaltyqmin(r, e, zk, zs, q, m, N, h, Rs, Rh, zi);
+           GearPenaltyRwmin(zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2);
+           GearPenaltyRwmax(r, zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2);
+           GearPenaltyRhopMin(e, zk, zs, m, q);
+           GearPenaltyRhopMax(e, zk, zs, m, q);
+           GearPenaltyRhonMin(e, zk, zs, m, q);
+           GearPenaltyRhonMax(e, zk, zs, m, q);
+           GearPenaltyStressExPos(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2);
+           GearPenaltyStressExNeg(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2);
+           GearPenaltyStressIn(zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2);
+           ];
+end
+
+
+================================================
+FILE: GearPenaltybmin.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltybmin(e, zk, zs, m, q, b)
+    alp=GearAlpha(e, zk, zs, m, q, 0);
+    rho=GearRho(e, zk, zs, m, q, alp);
+    if rho<0
+        min_alpha=alp;
+    else
+        min_alpha=alp+pi/zs;
+    end      
+    if b > abs(GearRho(e, zk, zs, m, q, min_alpha))
+       b=(b-abs(GearRho(e, zk, zs, m, q, min_alpha)))^2; 
+    else
+       b=0;
+    end
+    pen=b;
+end
+
+
+================================================
+FILE: GearPenaltybminJac.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltybminJac(e, zk, zs, m, q, b)
+    alp=GearAlpha(e, zk, zs, m, q, 0);
+    rho=GearRho(e, zk, zs, m, q, alp);
+    if rho<0
+        min_alpha=alp;
+    else
+        min_alpha=alp+pi/zs;
+    end      
+    if b > abs(GearRho(e, zk, zs, m, q, min_alpha))
+       b=2*(b-abs(GearRho(e, zk, zs, m, q, min_alpha)));
+    else
+       b=0;
+    end
+    pen=b;
+end
+
+
+================================================
+FILE: GearPenaltyEmin.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyEmin(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    E_MIN=q*(zk+1)/(3*sqrt(3)*zk)*sqrt((zk+1)/(zk-1))*sqrt(m^2/(1-m^2));
+    if e<E_MIN
+       %e=(E_MIN-e)^2;
+       e=(GearVolume(r, E_MIN, zk, zs, q, m, N, h, Rs, Rh, zi)...
+           -GearVolume(r, e, zk, zs, q, m, N, h, Rs, Rh, zi))^2;
+    else
+       e=0;
+    end
+    pen=e;
+end
+
+
+================================================
+FILE: GearPenaltyEminJac.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyEminJac(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    E_MIN=q*(zk+1)/(3*sqrt(3)*zk)*sqrt((zk+1)/(zk-1))*sqrt(m^2/(1-m^2));
+    if e<E_MIN
+       %e=2*(E_MIN-e);
+       e=2*(GearVolume(r, E_MIN, zk, zs, q, m, N, h, Rs, Rh, zi) ...
+           -GearVolume(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)) ...
+           *GearVolumede(r, e, zk, zs, q, m, N, h, Rs, Rh, zi);
+    else
+       e=0;
+    end
+    pen=e;
+end
+
+
+================================================
+FILE: GearPenaltyHmin.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyHmin(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    H_MIN=0.2;
+    if h<H_MIN
+       %h=(H_MIN-h)^2;
+       h=(GearVolume(r, e, zk, zs, q, m, N, H_MIN, Rs, Rh, zi)...
+           -GearVolume(r, e, zk, zs, q, m, N, h, Rs, Rh, zi))^2;
+    else
+       h=0;
+    end
+    pen=h;
+end
+
+
+================================================
+FILE: GearPenaltyHminJac.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyHminJac(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    H_MIN=0.2;
+    if h<H_MIN
+       %h=2*(H_MIN-h);
+       h=2*(GearVolume(r, e, zk, zs, q, m, N, H_MIN, Rs, Rh, zi) ...
+           -GearVolume(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)) ...
+           *GearVolumedh(r, e, zk, zs, q, m, N, h, Rs, Rh, zi);       
+    else
+       h=0;
+    end
+    pen=h;
+end
+
+
+================================================
+FILE: GearPenaltyMmax.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyMmax(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    M_MAX=0.85;
+    if m>M_MAX
+       %m=(m-M_MAX)^2;
+       m=(GearVolume(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)...
+           -GearVolume(r, e, zk, zs, q, M_MAX, N, h, Rs, Rh, zi))^2;       
+    else
+       m=0;
+    end
+    pen=m;
+end
+
+
+================================================
+FILE: GearPenaltyMmaxJac.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyMmaxJac(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    M_MAX=0.85;
+    if m>M_MAX
+       %m=2*(m-M_MAX);
+       m=2*(GearVolume(r, e, zk, zs, q, m, N, h, Rs, Rh, zi) ...
+           -GearVolume(r, e, zk, zs, q, M_MAX, N, h, Rs, Rh, zi)) ...
+           *GearVolumedm(r, e, zk, zs, q, m, N, h, Rs, Rh, zi);       
+    else
+       m=0;
+    end
+    pen=m;
+end
+
+
+================================================
+FILE: GearPenaltyMmin.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyMmin(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    M_MIN=0.5;
+    if m<M_MIN
+       %m=(M_MIN-m)^2;
+       m=(GearVolume(r, e, zk, zs, q, M_MIN, N, h, Rs, Rh, zi)...
+           -GearVolume(r, e, zk, zs, q, m, N, h, Rs, Rh, zi))^2;       
+    else
+       m=0;
+    end
+    pen=m;
+end
+
+
+================================================
+FILE: GearPenaltyMminJac.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyMminJac(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    M_MIN=0.5;
+    if m<M_MIN
+       %m=2*(M_MIN-m);
+       m=2*(GearVolume(r, e, zk, zs, q, M_MIN, N, h, Rs, Rh, zi) ...
+           -GearVolume(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)) ...
+           *GearVolumedm(r, e, zk, zs, q, m, N, h, Rs, Rh, zi);       
+    else
+       m=0;
+    end
+    pen=m;
+end
+
+
+================================================
+FILE: GearPenaltyqmin.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyqmin(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    alp=GearAlpha(e, zk, zs, m, q, 0);
+    rho=GearRho(e, zk, zs, m, q, alp);
+    if rho<0
+        min_alpha=alp;
+    else
+        min_alpha=alp+pi/zs;
+    end      
+    if q > abs(GearRho(e, zk, zs, m, q, min_alpha))
+       %q=(q-abs(GearRho(e, zk, zs, m, q, min_alpha)))^2;
+       q=(GearVolume(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)...
+           -GearVolume(r, e, zk, zs, abs(GearRho(e, zk, zs, m, q, min_alpha)), m, N, h, Rs, Rh, zi))^2;       
+    else
+       q=0;
+    end
+    pen=q;
+end
+
+
+================================================
+FILE: GearPenaltyqminJac.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyqminJac(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    alp=GearAlpha(e, zk, zs, m, q, 0);
+    rho=GearRho(e, zk, zs, m, q, alp);
+    if rho<0
+        min_alpha=alp;
+    else
+        min_alpha=alp+pi/zs;
+    end      
+    if q > abs(GearRho(e, zk, zs, m, q, min_alpha))
+       %q=2*(q-abs(GearRho(e, zk, zs, m, q, min_alpha)));
+       q=2*(GearVolume(r, e, zk, zs, q, m, N, h, Rs, Rh, zi) ...
+           -GearVolume(r, e, zk, zs, abs(GearRho(e, zk, zs, m, q, min_alpha)), m, N, h, Rs, Rh, zi)) ...
+           *GearVolumedq(r, e, zk, zs, q, m, N, h, Rs, Rh, zi);       
+    else
+       q=0;
+    end
+    pen=q;
+end
+
+
+================================================
+FILE: GearPenaltyRhmin.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyRhmin(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    if Rh<Rs
+       %Rh=(Rs-Rh)^2;
+       Rh=(GearVolume(r, e, zk, zs, q, m, N, h, Rs, Rs, zi)...
+           -GearVolume(r, e, zk, zs, q, m, N, h, Rs, Rh, zi))^2;       
+    else
+       Rh=0;
+    end
+    pen=Rh;
+end
+
+
+================================================
+FILE: GearPenaltyRhminJac.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyRhminJac(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    if Rh<Rs
+       %Rh=2*(Rs-Rh);
+       Rh=2*(GearVolume(r, e, zk, zs, q, m, N, h, Rs, Rs, zi) ...
+           -GearVolume(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)) ...
+           *GearVolumedRh(r, e, zk, zs, q, m, N, h, Rs, Rh, zi);       
+    else
+       Rh=0;
+    end
+    pen=Rh;
+end
+
+
+================================================
+FILE: GearPenaltyRhonMax.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyRhonMax(e, zk, zs, m, q)
+    NMAX_RHO=GearGetConstant(5);
+    alp=GearAlpha(e, zk, zs, m, q, 0);
+    rho=GearRho(e, zk, zs, m, q, alp);
+    if rho<0
+        min_alpha=alp;
+    else
+        min_alpha=alp+pi/zs;
+    end  
+    nmaxrho=GearRho(e, zk, zs, m, q, min_alpha);
+    if nmaxrho<NMAX_RHO
+        nmaxrho=(NMAX_RHO-nmaxrho)^2;
+    else
+        nmaxrho=0;
+    end 
+    pen=nmaxrho;
+end
+
+
+================================================
+FILE: GearPenaltyRhonMaxJac.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyRhonMaxJac(e, zk, zs, m, q)
+    NMAX_RHO=GearGetConstant(5);
+    alp=GearAlpha(e, zk, zs, m, q, 0);
+    rho=GearRho(e, zk, zs, m, q, alp);
+    if rho<0
+        min_alpha=alp;
+    else
+        min_alpha=alp+pi/zs;
+    end  
+    nmaxrho=GearRho(e, zk, zs, m, q, min_alpha);
+    if nmaxrho<NMAX_RHO
+        nmaxrho=2*(NMAX_RHO-nmaxrho);
+    else
+        nmaxrho=0;
+    end 
+    pen=nmaxrho;
+end
+
+
+================================================
+FILE: GearPenaltyRhonMin.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyRhonMin(e, zk, zs, m, q)
+    NMIN_RHO=GearGetConstant(4);
+    alp=GearAlpha(e, zk, zs, m, q, 0);
+    rho=GearRho(e, zk, zs, m, q, alp);
+    if rho<0
+        min_alpha=alp;
+    else
+        min_alpha=alp+pi/zs;
+    end  
+    nminrho=GearRho(e, zk, zs, m, q, min_alpha);
+    if nminrho>NMIN_RHO
+        nminrho=(nminrho-NMIN_RHO)^2;
+    else
+        nminrho=0;
+    end 
+    pen=nminrho;
+end
+
+
+================================================
+FILE: GearPenaltyRhonMinJac.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyRhonMinJac(e, zk, zs, m, q)
+    NMIN_RHO=GearGetConstant(4);
+    alp=GearAlpha(e, zk, zs, m, q, 0);
+    rho=GearRho(e, zk, zs, m, q, alp);
+    if rho<0
+        min_alpha=alp;
+    else
+        min_alpha=alp+pi/zs;
+    end  
+    nminrho=GearRho(e, zk, zs, m, q, min_alpha);
+    if nminrho>NMIN_RHO
+        nminrho=2*(nminrho-NMIN_RHO);
+    else
+        nminrho=0;
+    end 
+    pen=nminrho;
+end
+
+
+================================================
+FILE: GearPenaltyRhopMax.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyRhopMax(e, zk, zs, m, q)
+    PMAX_RHO=GearGetConstant(3);
+    alp=GearAlpha(e, zk, zs, m, q, 0);
+    rho=GearRho(e, zk, zs, m, q, alp);
+    if rho<0
+        max_alpha=alp+pi/zs;
+    else
+        max_alpha=alp;
+    end  
+    pmaxrho=GearRho(e, zk, zs, m, q, max_alpha);
+    if pmaxrho>PMAX_RHO
+        pmaxrho=(abs(pmaxrho)-PMAX_RHO)^2;
+    else
+        pmaxrho=0;
+    end 
+    pen=pmaxrho;
+end
+
+
+================================================
+FILE: GearPenaltyRhopMaxJac.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyRhopMaxJac(e, zk, zs, m, q)
+    PMAX_RHO=GearGetConstant(3);
+    alp=GearAlpha(e, zk, zs, m, q, 0);
+    rho=GearRho(e, zk, zs, m, q, alp);
+    if rho<0
+        max_alpha=alp+pi/zs;
+    else
+        max_alpha=alp;
+    end  
+    pmaxrho=GearRho(e, zk, zs, m, q, max_alpha);
+    if pmaxrho>PMAX_RHO
+        pmaxrho=2*(abs(pmaxrho)-PMAX_RHO);
+    else
+        pmaxrho=0;
+    end 
+    pen=pmaxrho;
+end
+
+
+================================================
+FILE: GearPenaltyRhopMin.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyRhopMin(e, zk, zs, m, q)
+    PMIN_RHO=GearGetConstant(2);
+    alp=GearAlpha(e, zk, zs, m, q, 0);
+    rho=GearRho(e, zk, zs, m, q, alp);
+    if rho<0
+        max_alpha=alp+pi/zs;
+    else
+        max_alpha=alp;
+    end  
+    pminrho=GearRho(e, zk, zs, m, q, max_alpha);
+    if pminrho<PMIN_RHO
+        pminrho=(PMIN_RHO-abs(pminrho))^2;
+    else
+        pminrho=0;
+    end 
+    pen=pminrho;
+end
+
+
+================================================
+FILE: GearPenaltyRhopMinJac.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyRhopMinJac(e, zk, zs, m, q)
+    PMIN_RHO=GearGetConstant(2);
+    alp=GearAlpha(e, zk, zs, m, q, 0);
+    rho=GearRho(e, zk, zs, m, q, alp);
+    if rho<0
+        max_alpha=alp+pi/zs;
+    else
+        max_alpha=alp;
+    end  
+    pminrho=GearRho(e, zk, zs, m, q, max_alpha);
+    if pminrho<PMIN_RHO
+        pminrho=2*(PMIN_RHO-abs(pminrho));
+    else
+        pminrho=0;
+    end 
+    pen=pminrho;
+end
+
+
+================================================
+FILE: GearPenaltyRsmin.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyRsmin(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    RS_MIN=3;
+    if Rs<RS_MIN
+       %Rs=(RS_MIN-Rs)^2;
+       Rs=(GearVolume(r, e, zk, zs, q, m, N, h, RS_MIN, Rh, zi)...
+           -GearVolume(r, e, zk, zs, q, m, N, h, Rs, Rh, zi))^2;       
+    else
+       Rs=0;
+    end
+    pen=Rs;
+end
+
+
+================================================
+FILE: GearPenaltyRsminJac.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyRsminJac(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    RS_MIN=3;
+    if Rs<RS_MIN
+       %Rs=2*(RS_MIN-Rs);
+       Rs=2*(GearVolume(r, e, zk, zs, q, m, N, h, RS_MIN, Rh, zi) ...
+           -GearVolume(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)) ...
+           *GearVolumedRs(r, e, zk, zs, q, m, N, h, Rs, Rh, zi);       
+    else
+       Rs=0;
+    end
+    pen=Rs;
+end
+
+
+================================================
+FILE: GearPenaltyRwmax.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyRwmax(r, zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2)   
+    if Rw > (r-Rs)
+       %Rw=(Rw-(r-Rs))^2;
+       Rw=(GearStressIn(zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2)...
+           -GearStressIn(zs, zi, h, Mh, (r-Rs), Rs, Rh, nu1, Emod1, nu2, Emod2))^2;
+    else
+       Rw=0;
+    end
+    pen=Rw;
+end
+
+
+================================================
+FILE: GearPenaltyRwmaxJac.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyRwmaxJac(r, zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2)   
+    if Rw > (r-Rs)
+       %Rw=2*(Rw-(r-Rs));
+       Rw=2*(GearStressIn(zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2) ...
+           -GearStressIn(zs, zi, h, Mh, (r-Rs), Rs, Rh, nu1, Emod1, nu2, Emod2)) ...
+           *GearStressIndRw(Rs, Mh, zs, Rw, Rh, h, zi, nu1, Emod1, nu2, Emod2);       
+    else
+       Rw=0;
+    end
+    pen=Rw;
+end
+
+
+================================================
+FILE: GearPenaltyRwmin.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyRwmin(zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2)   
+    if Rw < 2*Rs
+       %Rw=(2*Rs-Rw)^2;
+       Rw=(GearStressIn(zs, zi, h, Mh, 2*Rs, Rs, Rh, nu1, Emod1, nu2, Emod2)...
+           -GearStressIn(zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2))^2;       
+    else
+       Rw=0;
+    end
+    pen=Rw;
+end
+
+
+================================================
+FILE: GearPenaltyRwminJac.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyRwminJac(zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2)   
+    if Rw < 2*Rs
+       %Rw=2*(2*Rs-Rw);
+       Rw=2*(GearStressIn(zs, zi, h, Mh, 2*Rs, Rs, Rh, nu1, Emod1, nu2, Emod2)...
+           -GearStressIn(zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2)) ...
+           *GearStressIndRw(Rs, Mh, zs, Rw, Rh, h, zi, nu1, Emod1, nu2, Emod2);        
+    else
+       Rw=0;
+    end
+    pen=Rw;
+end
+
+
+================================================
+FILE: GearPenaltyStressExNeg.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyStressExNeg(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2)   
+    MAX_CONTACT_STRESS=GearGetConstant(1);
+    alp=GearAlpha(e, zk, zs, m, q, 0);
+    rho=GearRho(e, zk, zs, m, q, alp);
+    if rho<0
+        min_alpha=alp;
+    else
+        min_alpha=alp+pi/zs;
+    end    
+    gstressexnegpen=GearStressExNeg(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, min_alpha);
+    if gstressexnegpen > MAX_CONTACT_STRESS
+        gstressexnegpen=(gstressexnegpen-MAX_CONTACT_STRESS)^2;
+    else
+        gstressexnegpen=0;
+    end 
+    pen=gstressexnegpen;
+end
+
+
+================================================
+FILE: GearPenaltyStressExNegJac.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyStressExNegJac(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2)   
+    MAX_CONTACT_STRESS=GearGetConstant(1);
+    alp=GearAlpha(e, zk, zs, m, q, 0);
+    rho=GearRho(e, zk, zs, m, q, alp);
+    if rho<0
+        min_alpha=alp;
+    else
+        min_alpha=alp+pi/zs;
+    end    
+    gstressexnegpen=GearStressExNeg(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, min_alpha);
+    if gstressexnegpen > MAX_CONTACT_STRESS
+        gstressexnegpen=2*(gstressexnegpen-MAX_CONTACT_STRESS);
+    else
+        gstressexnegpen=0;
+    end 
+    pen=gstressexnegpen;
+end
+
+
+================================================
+FILE: GearPenaltyStressExPos.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyStressExPos(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2)   
+    MAX_CONTACT_STRESS=GearGetConstant(1);
+    alp=GearAlpha(e, zk, zs, m, q, 0);
+    rho=GearRho(e, zk, zs, m, q, alp);
+    if rho<0
+        max_alpha=alp+pi/zs;
+    else
+        max_alpha=alp;
+    end      
+    gstressexpospen=GearStressExPos(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, max_alpha);
+    if gstressexpospen > MAX_CONTACT_STRESS
+        gstressexpospen=(gstressexpospen-MAX_CONTACT_STRESS)^2;
+    else
+        gstressexpospen=0;
+    end
+    pen=gstressexpospen;
+end
+
+
+================================================
+FILE: GearPenaltyStressExPosJac.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyStressExPosJac(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2)   
+    MAX_CONTACT_STRESS=GearGetConstant(1);
+    alp=GearAlpha(e, zk, zs, m, q, 0);
+    rho=GearRho(e, zk, zs, m, q, alp);
+    if rho<0
+        max_alpha=alp+pi/zs;
+    else
+        max_alpha=alp;
+    end      
+    gstressexpospen=GearStressExPos(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, max_alpha);
+    if gstressexpospen > MAX_CONTACT_STRESS
+        gstressexpospen=2*(gstressexpospen-MAX_CONTACT_STRESS);
+    else
+        gstressexpospen=0;
+    end
+    pen=gstressexpospen;
+end
+
+
+================================================
+FILE: GearPenaltyStressIn.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyStressIn(zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2)   
+    MAX_CONTACT_STRESS=GearGetConstant(1);
+    gstressinpen=GearStressIn(zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2);
+    if gstressinpen > MAX_CONTACT_STRESS
+        gstressinpen=(gstressinpen-MAX_CONTACT_STRESS)^2;
+    else
+        gstressinpen=0;
+    end
+    pen=gstressinpen;
+end
+
+
+================================================
+FILE: GearPenaltyStressInJac.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyStressInJac(zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2)   
+    MAX_CONTACT_STRESS=GearGetConstant(1);
+    gstressinpen=GearStressIn(zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2);
+    if gstressinpen > MAX_CONTACT_STRESS
+        gstressinpen=2*(gstressinpen-MAX_CONTACT_STRESS);
+    else
+        gstressinpen=0;
+    end
+    pen=gstressinpen;
+end
+
+
+================================================
+FILE: GearPenaltyVmin.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyVmin(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    MIN_VOL=GearGetConstant(6);
+    vol=GearVolume(r, e, zk, zs, q, m, N, h, Rs, Rh, zi);
+    if vol < MIN_VOL
+            vol=(MIN_VOL-vol)^2;
+    else
+            vol=0;
+    end
+    pen=vol;
+end
+
+
+================================================
+FILE: GearPenaltyVminJac.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function pen=GearPenaltyVminJac(r, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    MIN_VOL=GearGetConstant(6);
+    vol=GearVolume(r, e, zk, zs, q, m, N, h, Rs, Rh, zi);
+    if vol < MIN_VOL
+            vol=2*(MIN_VOL-vol);
+    else
+            vol=0;
+    end
+    pen=vol;
+end
+
+
+================================================
+FILE: GearRho.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function grho=GearRho(e, zk, zs, m, q, alpha)
+    r=e*(zs+1)/m;
+    grho=((r*sin(alpha) - q*sin(alpha ...
+        + atan(sin(alpha*zs)/(cos(alpha*zs) ...
+        + 1/m)))*(((zs*sin(alpha*zs)^2)/(cos(alpha*zs) ...
+        + 1/m)^2 + (zs*cos(alpha*zs))/(cos(alpha*zs) ...
+        + 1/m))/(sin(alpha*zs)^2/(cos(alpha*zs) + 1/m)^2 + 1) ...
+        + 1) + e*zk*sin(alpha*zk))^2 + (r*cos(alpha) - q*cos(alpha ...
+        + atan(sin(alpha*zs)/(cos(alpha*zs) + 1/m)))*(((zs*sin(alpha*zs)^2)...
+        /(cos(alpha*zs) + 1/m)^2 + (zs*cos(alpha*zs))...
+        /(cos(alpha*zs) + 1/m))/(sin(alpha*zs)^2/(cos(alpha*zs)...
+        + 1/m)^2 + 1) + 1) + e*zk*cos(alpha*zk))^2)^(3/2)/((r*cos(alpha) ...
+        - q*cos(alpha + atan(sin(alpha*zs)/(cos(alpha*zs) + 1/m)))...
+        *(((zs*sin(alpha*zs)^2)/(cos(alpha*zs) + 1/m)^2 ...
+        + (zs*cos(alpha*zs))/(cos(alpha*zs) + 1/m))/(sin(alpha*zs)^2 ...
+        /(cos(alpha*zs) + 1/m)^2 + 1) + 1) + e*zk*cos(alpha*zk))...
+        *(r*cos(alpha) - q*cos(alpha + atan(sin(alpha*zs)/...
+        (cos(alpha*zs) + 1/m)))*(((zs*sin(alpha*zs)^2)/...
+        (cos(alpha*zs) + 1/m)^2 + (zs*cos(alpha*zs))/(cos(alpha*zs) ...
+        + 1/m))/(sin(alpha*zs)^2/(cos(alpha*zs) + 1/m)^2 + 1) + 1)^2 ...
+        + e*zk^2*cos(alpha*zk) - q*sin(alpha + atan(sin(alpha*zs)...
+        /(cos(alpha*zs) + 1/m)))*(((2*zs^2*sin(alpha*zs)^3)/(cos(alpha*zs)...
+        + 1/m)^3 - (zs^2*sin(alpha*zs))/(cos(alpha*zs) + 1/m) ...
+        + (3*zs^2*cos(alpha*zs)*sin(alpha*zs))/(cos(alpha*zs) ...
+        + 1/m)^2)/(sin(alpha*zs)^2/(cos(alpha*zs) + 1/m)^2 + 1) ...
+        - (((zs*sin(alpha*zs)^2)/(cos(alpha*zs) + 1/m)^2 ...
+        + (zs*cos(alpha*zs))/(cos(alpha*zs) + 1/m))*((2*zs*sin(alpha*zs)^3)...
+        /(cos(alpha*zs) + 1/m)^3 + (2*zs*cos(alpha*zs)*sin(alpha*zs))...
+        /(cos(alpha*zs) + 1/m)^2))/(sin(alpha*zs)^2/(cos(alpha*zs) ...
+        + 1/m)^2 + 1)^2)) + (r*sin(alpha) - q*sin(alpha + atan(sin(alpha*zs)...
+        /(cos(alpha*zs) + 1/m)))*(((zs*sin(alpha*zs)^2)/(cos(alpha*zs) + 1/m)^2 ...
+        + (zs*cos(alpha*zs))/(cos(alpha*zs) + 1/m))/(sin(alpha*zs)^2 ...
+        /(cos(alpha*zs) + 1/m)^2 + 1) + 1) + e*zk*sin(alpha*zk))...
+        *(r*sin(alpha) - q*sin(alpha + atan(sin(alpha*zs)/(cos(alpha*zs) ...
+        + 1/m)))*(((zs*sin(alpha*zs)^2)/(cos(alpha*zs) + 1/m)^2 ...
+        + (zs*cos(alpha*zs))/(cos(alpha*zs) + 1/m))/(sin(alpha*zs)^2 ...
+        /(cos(alpha*zs) + 1/m)^2 + 1) + 1)^2 + e*zk^2*sin(alpha*zk) ...
+        + q*cos(alpha + atan(sin(alpha*zs)/(cos(alpha*zs) + 1/m))) ...
+        *(((2*zs^2*sin(alpha*zs)^3)/(cos(alpha*zs) + 1/m)^3 ...
+        - (zs^2*sin(alpha*zs))/(cos(alpha*zs) + 1/m)...
+        + (3*zs^2*cos(alpha*zs)*sin(alpha*zs))/(cos(alpha*zs) ...
+        + 1/m)^2)/(sin(alpha*zs)^2/(cos(alpha*zs) + 1/m)^2 + 1) ...
+        - (((zs*sin(alpha*zs)^2)/(cos(alpha*zs) + 1/m)^2 ...
+        + (zs*cos(alpha*zs))/(cos(alpha*zs) + 1/m))*((2*zs*sin(alpha*zs)^3)...
+        /(cos(alpha*zs) + 1/m)^3 + (2*zs*cos(alpha*zs)*sin(alpha*zs))...
+        /(cos(alpha*zs) + 1/m)^2))/(sin(alpha*zs)^2/(cos(alpha*zs) ...
+        + 1/m)^2 + 1)^2)));
+end
+
+
+================================================
+FILE: GearRhoBis.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function grho=GearRhoBis(e, zk, zs, m, q, alpha)
+    grho=(GearRhoPrim(e, zk, zs, m, q, alpha+0.001)-GearRhoPrim(e, zk, zs, m, q, alpha))/0.001;
+end
+
+
+================================================
+FILE: GearRhode.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function de=GearRhode(e, zk, zs, m, q, alpha)
+de=(GearRho(e+0.001, zk, zs, m, q, alpha)-GearRho(e, zk, zs, m, q, alpha))/0.001;
+end
+
+
+================================================
+FILE: GearRhodm.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function dm=GearRhodm(e, zk, zs, m, q, alpha)
+dm=(GearRho(e, zk, zs, m+0.001, q, alpha)-GearRho(e, zk, zs, m, q, alpha))/0.001;
+end
+
+
+================================================
+FILE: GearRhodq.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function grho=GearRhodq(e, zk, zs, m, q, alpha)
+    grho=(GearRho(e, zk, zs, m, q+0.001, alpha)-GearRho(e, zk, zs, m, q, alpha))/0.001;
+end
+
+
+================================================
+FILE: GearRhoPrim.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function grho=GearRhoPrim(e, zk, zs, m, q, alpha)
+    grho=(GearRho(e, zk, zs, m, q, alpha+0.001)-GearRho(e, zk, zs, m, q, alpha))/0.001;
+end
+
+
+================================================
+FILE: GearRosenbrock.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function gr=GearRosenbrock(x)
+    gr=(1-x(1))^2+100*(x(2)-x(1)^2)^2;
+end
+
+
+================================================
+FILE: GearRosenbrockJac.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function grjac=GearRosenbrockJac(x)
+    grjac=[-2*(1-x(1))+2*100*(x(2)-x(1)^2)*(-2*x(1)), 2*100*(x(2)-x(1)^2)];
+end
+
+
+================================================
+FILE: GearRun.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+xp=[3.0, 3.3, 0.56, 10, 5, 8, 40]';
+%xfin=GearLevMar(3000, @GearObjective, @GearJac, xp);
+xfin=GearSimpleLevMar(3000, @GearObjective, @GearJac, xp);
+GearDraw(xfin, xp);
+VolumeFin=GearVolume(xfin(1)*(15+1)/xfin(3), xfin(1), 16, 15, xfin(2), xfin(3), 1000, xfin(4), xfin(5), xfin(6), 8);
+VolumeXp=GearVolume(xp(1)*(15+1)/xp(3), xp(1), 16, 15, xp(2), xp(3), 1000, xp(4), xp(5), xp(6), 8);
+% R=xfin(1)*(15+1)/xfin(3);
+% e=xfin(1);
+% q=xfin(2);
+% m=xfin(3);
+% h=xfin(4);
+% Rs=xfin(5);
+% Rh=xfin(6);
+% Rw=xfin(7);
+    alp=GearAlpha(xp(1), 16, 15, xp(3), xp(2), 0);
+    rho=GearRho(xp(1), 16, 15, xp(3), xp(2), alp);
+    if rho<0
+        min_alpha=alp;
+        max_alpha=alp+pi/15;
+    else
+        max_alpha=alp;
+        min_alpha=alp+pi/15;
+    end  
+StressExPosPrev=GearStressExPos(xp(1), 16, 15, xp(3), xp(2), xp(4), 1550, 0.3, 200000, 0.3, 200000, max_alpha);
+StressExNegPrev=GearStressExNeg(xp(1), 16, 15, xp(3), xp(2), xp(4), 1550, 0.3, 200000, 0.3, 200000, min_alpha);
+StressInPrev=GearStressIn(15, 8, xp(4), 1550, xp(7), xp(5), xp(6), 0.3, 200000, 0.3, 200000);
+VolumePrev=GearVolume(xp(1)*16/xp(3), xp(1), 16, 15, xp(2), xp(3), 1000, xp(4), xp(5), xp(6), 8);
+
+    alp=GearAlpha(xfin(1), 16, 15, xfin(3), xfin(2), 0);
+    rho=GearRho(xfin(1), 16, 15, xfin(3), xfin(2), alp);
+    if rho<0
+        min_alpha=alp;
+        max_alpha=alp+pi/15;
+    else
+        max_alpha=alp;
+        min_alpha=alp+pi/15;
+    end  
+StressExPosNext=GearStressExPos(xfin(1), 16, 15, xfin(3), xfin(2), xfin(4), 1550, 0.3, 200000, 0.3, 200000, max_alpha);
+StressExNegNext=GearStressExNeg(xfin(1), 16, 15, xfin(3), xfin(2), xfin(4), 1550, 0.3, 200000, 0.3, 200000, min_alpha);
+StressInNext=GearStressIn(15, 8, xfin(4), 1550, xfin(7), xfin(5), xfin(6), 0.3, 200000, 0.3, 200000);
+VolumeNext=GearVolume(xfin(1)*16/xfin(3), xfin(1), 16, 15, xfin(2), xfin(3), 1000, xfin(4), xfin(5), xfin(6), 8);
+
+xfin2=GearSteepestDescent(10000, @GearObjective, @GearJac, xp);
+figure;
+GearDraw(xfin2, xp);
+VolumeFin2=GearVolume(xfin2(1)*(15+1)/xfin2(3), xfin2(1), 16, 15, xfin2(2), xfin2(3), 1000, xfin2(4), xfin2(5), xfin2(6), 8);
+VolumeXp2=GearVolume(xp(1)*(15+1)/xp(3), xp(1), 16, 15, xp(2), xp(3), 1000, xp(4), xp(5), xp(6), 8);
+% R=xfin(1)*(15+1)/xfin(3);
+% e=xfin(1);
+% q=xfin(2);
+% m=xfin(3);
+% h=xfin(4);
+% Rs=xfin(5);
+% Rh=xfin(6);
+% Rw=xfin(7);
+    alp=GearAlpha(xp(1), 16, 15, xp(3), xp(2), 0);
+    rho=GearRho(xp(1), 16, 15, xp(3), xp(2), alp);
+    if rho<0
+        min_alpha=alp;
+        max_alpha=alp+pi/15;
+    else
+        max_alpha=alp;
+        min_alpha=alp+pi/15;
+    end  
+StressExPosPrev2=GearStressExPos(xp(1), 16, 15, xp(3), xp(2), xp(4), 1550, 0.3, 200000, 0.3, 200000, max_alpha);
+StressExNegPrev2=GearStressExNeg(xp(1), 16, 15, xp(3), xp(2), xp(4), 1550, 0.3, 200000, 0.3, 200000, min_alpha);
+StressInPrev2=GearStressIn(15, 8, xp(4), 1550, xp(7), xp(5), xp(6), 0.3, 200000, 0.3, 200000);
+VolumePrev2=GearVolume(xp(1)*16/xp(3), xp(1), 16, 15, xp(2), xp(3), 1000, xp(4), xp(5), xp(6), 8);
+
+    alp=GearAlpha(xfin2(1), 16, 15, xfin2(3), xfin2(2), 0);
+    rho=GearRho(xfin2(1), 16, 15, xfin2(3), xfin2(2), alp);
+    if rho<0
+        min_alpha=alp;
+        max_alpha=alp+pi/15;
+    else
+        max_alpha=alp;
+        min_alpha=alp+pi/15;
+    end  
+StressExPosNext2=GearStressExPos(xfin2(1), 16, 15, xfin2(3), xfin2(2), xfin2(4), 1550, 0.3, 200000, 0.3, 200000, max_alpha);
+StressExNegNext2=GearStressExNeg(xfin2(1), 16, 15, xfin2(3), xfin2(2), xfin2(4), 1550, 0.3, 200000, 0.3, 200000, min_alpha);
+StressInNext2=GearStressIn(15, 8, xfin2(4), 1550, xfin2(7), xfin2(5), xfin2(6), 0.3, 200000, 0.3, 200000);
+VolumeNext2=GearVolume(xfin2(1)*16/xfin2(3), xfin2(1), 16, 15, xfin2(2), xfin2(3), 1000, xfin2(4), xfin2(5), xfin2(6), 8);
+
+
+
+
+================================================
+FILE: GearSimpleLevMar.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function xnew=GearSimpleLevMar(nmax, obj, jac, x0)
+    k=10;
+    n=0;
+    err=1e-10;
+    lambda=1000;
+    jacTjac=jac(x0)'*jac(x0);
+    grad=jac(x0)'*obj(x0);
+    xprev=x0;
+    xnext=x0-(jacTjac+lambda*diag(diag(jacTjac)))\grad;
+    while n<nmax && norm(xprev-xnext)>1e-6
+        fnext=0.5*norm(obj(xnext))*norm(obj(xnext));
+        fprev=0.5*norm(obj(xprev))*norm(obj(xprev));
+        if (fprev-fnext)> err
+            n=n+1;
+            xprev=xnext;
+            lambda=lambda/k;
+            jacTjac=jac(xprev)'*jac(xprev);
+            grad=jac(xprev)'*obj(xprev);
+            xnext=xprev-(jacTjac+lambda*diag(diag(jacTjac)))\grad;
+        else
+            n=n+1;
+            lambda=lambda*k;
+            jacTjac=jac(xprev)'*jac(xprev);
+            grad=jac(xprev)'*obj(xprev);
+            xnext=xprev-(jacTjac+lambda*diag(diag(jacTjac)))\grad;
+        end
+    end 
+    xnew=xnext;
+end
+
+
+================================================
+FILE: GearSteepestDescent.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function xnew=GearSteepestDescent(nmax, obj, jac, x0)
+    n=0;
+    err=1e-10;
+    lambda=1e-13;
+    grad=jac(x0)'*obj(x0);
+    xprev=x0;
+    xnext=x0-lambda*grad;
+    while n<nmax && norm(xprev-xnext)>1e-6
+        fnext=0.5*norm(obj(xnext))*norm(obj(xnext));
+        fprev=0.5*norm(obj(xprev))*norm(obj(xprev));
+        if (fprev-fnext)> err
+            n=n+1;
+            xprev=xnext;
+            grad=jac(xprev)'*obj(xprev);
+            xnext=xprev-lambda*grad;
+        else 
+            grad=jac(xprev)'*obj(xprev);
+            xnext=xprev-lambda*grad;
+            break;
+        end
+    end 
+    xnew=xnext;
+end
+
+
+================================================
+FILE: GearStressExdbNeg.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function sp=GearStressExdbNeg(e, zk, zs, m, q, h, Mh, b, nu1, Emod1, nu2, Emod2, alpha)
+        StressExdbNeg=(GearStressExNeg(e, zk, zs, m, q, h, Mh, b+0.001, nu1, Emod1, nu2, Emod2, alpha)...
+        -GearStressExNeg(e, zk, zs, m, q, h, Mh, b, nu1, Emod1, nu2, Emod2, alpha))/0.001;
+        sp=StressExdbNeg;
+end
+
+
+================================================
+FILE: GearStressExdbPos.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function sp=GearStressExdbPos(e, zk, zs, m, q, h, Mh, b, nu1, Emod1, nu2, Emod2, alpha)
+        StressExdbPos=(GearStressExPos(e, zk, zs, m, q, h, Mh, b+0.001, nu1, Emod1, nu2, Emod2, alpha)...
+        -GearStressExPos(e, zk, zs, m, q, h, Mh, b, nu1, Emod1, nu2, Emod2, alpha))/0.001;
+        sp=StressExdbPos;
+end
+
+
+================================================
+FILE: GearStressExdeNeg.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function sp=GearStressExdeNeg(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, alpha)
+    StressExdeNeg=(GearStressExNeg(e+0.001, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, alpha)...
+        -GearStressExNeg(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, alpha))/0.001;
+    sp=StressExdeNeg;
+end
+
+
+================================================
+FILE: GearStressExdePos.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function sp=GearStressExdePos(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, alpha)
+    StressExdePos=(GearStressExPos(e+0.001, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, alpha)...
+        -GearStressExPos(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, alpha))/0.001;
+    sp=StressExdePos;
+end
+
+
+================================================
+FILE: GearStressExdhNeg.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function sp=GearStressExdhNeg(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, alpha)
+    StressExdhNeg=(GearStressExNeg(e, zk, zs, m, q, h+0.001, Mh, nu1, Emod1, nu2, Emod2, alpha)...
+        -GearStressExNeg(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, alpha))/0.001;
+    sp=StressExdhNeg;
+end
+
+
+================================================
+FILE: GearStressExdhPos.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function sp=GearStressExdhPos(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, alpha)
+    StressExdhPos=(GearStressExPos(e, zk, zs, m, q, h+0.001, Mh, nu1, Emod1, nu2, Emod2, alpha)...
+        -GearStressExPos(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, alpha))/0.001;
+    sp=StressExdhPos;
+end
+
+
+================================================
+FILE: GearStressExdmNeg.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function sp=GearStressExdmNeg(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, alpha)
+    StressExdmNeg=(GearStressExNeg(e, zk, zs, m+0.001, q, h, Mh, nu1, Emod1, nu2, Emod2, alpha)...
+    -GearStressExNeg(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, alpha))/0.001;
+    sp=StressExdmNeg;
+end
+
+
+================================================
+FILE: GearStressExdmPos.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function sp=GearStressExdmPos(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, alpha)
+    StressExdmPos=(GearStressExPos(e, zk, zs, m+0.001, q, h, Mh, nu1, Emod1, nu2, Emod2, alpha)...
+        -GearStressExPos(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, alpha))/0.001;
+    sp=StressExdmPos;
+end
+
+
+================================================
+FILE: GearStressExdqNeg.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function sp=GearStressExdqNeg(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, alpha)
+    StressExdqNeg=(GearStressExNeg(e, zk, zs, m, q+0.001, h, Mh, nu1, Emod1, nu2, Emod2, alpha)...
+        -GearStressExNeg(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, alpha))/0.001;
+    sp=StressExdqNeg;
+end
+
+
+================================================
+FILE: GearStressExdqPos.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function sp=GearStressExdqPos(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, alpha)
+    StressExdqPos=(GearStressExPos(e, zk, zs, m, q+0.001, h, Mh, nu1, Emod1, nu2, Emod2, alpha)...
+        -GearStressExPos(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, alpha))/0.001;
+    sp=StressExdqPos;
+end
+
+
+================================================
+FILE: GearStressExNeg.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+
+function sp=GearStressExNeg(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, alpha)
+    rho=GearRho(e, zk, zs, m, q, alpha);
+    Mc=Mh*zs; %Mh*i, i - gear transmission ratio
+    nn=(1-nu1*nu1)/Emod1+(1-nu2*nu2)/Emod2;
+    exsleeveforce=4*Mc/(e*zs*zk);
+    MaxStressExNeg=0.5642*sqrt((exsleeveforce/h)*(abs(rho)-q)/(nn*abs(rho)*q));
+    sp=MaxStressExNeg;
+end
+
+
+================================================
+FILE: GearStressExPos.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function sp=GearStressExPos(e, zk, zs, m, q, h, Mh, nu1, Emod1, nu2, Emod2, alpha)
+    rho=GearRho(e, zk, zs, m, q, alpha);
+    Mc=Mh*zs; %Mh*i, i - gear transmission ratio
+    nn=(1-nu1*nu1)/Emod1+(1-nu2*nu2)/Emod2;
+    exsleeveforce=4*Mc/(e*zs*zk);
+    MaxStressExPos=0.5642*sqrt((exsleeveforce/h)*(rho+q)/(nn*rho*q));
+    sp=MaxStressExPos;
+end
+
+
+================================================
+FILE: GearStressIn.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function sp=GearStressIn(zs, zi, h, Mh, Rw, Rs, Rh, nu1, Emod1, nu2, Emod2)
+        sleeveangle=2*pi/zi;
+        Mc=Mh*zs; %Mh*i, i - gear transmission ratio
+        insleeveforce=2*Mc*(cos(sleeveangle))/(pi*Rw);
+        nn=(1-nu1*nu1)/Emod1+(1-nu2*nu2)/Emod2;
+        MaxStressIn=0.5642*sqrt((insleeveforce/h)*(Rh-Rs)/(nn*Rh*Rs));
+        sp=MaxStressIn;
+end
+
+
+================================================
+FILE: GearStressIndh.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function dstress=GearStressIndh(Rs, Mh, zs, Rw, Rh, h, zi, nu1, Emod1, nu2, Emod2)
+        sleeveangle=2*pi/zi;
+        Mc=Mh*zs; %Mh*i, i - gear transmission ratio 
+        nn=(1-nu1*nu1)/Emod1+(1-nu2*nu2)/Emod2;
+        dSdh=-(0.5642*Mc*(Rh-Rs)*cos(sleeveangle))/(sqrt(2)*Rh*Rs*Rw*h^2*nn*pi*sqrt((Mc*(Rh-Rs)*cos(sleeveangle))/(Rh*Rs*Rw*h*nn*pi)));
+        dstress=dSdh;
+end
+
+
+================================================
+FILE: GearStressIndRh.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function dstress=GearStressIndRh(Rs, Mh, zs, Rw, Rh, h, zi, nu1, Emod1, nu2, Emod2)
+        sleeveangle=2*pi/zi;
+        Mc=Mh*zs; %Mh*i, i - gear transmission ratio 
+        nn=(1-nu1*nu1)/Emod1+(1-nu2*nu2)/Emod2;
+        dSdRh=(0.5642*((Mc*cos(sleeveangle))/(Rh*Rs*Rw*h*nn*pi)-(Mc*(Rh-Rs)*cos(sleeveangle))/(Rh^2*Rs*Rw*h*nn*pi)))/(sqrt(2)*sqrt((Mc*(Rh-Rs)*cos(sleeveangle))/(Rh*Rs*Rw*h*nn*pi)));
+        dstress=dSdRh;
+end
+
+
+================================================
+FILE: GearStressIndRs.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function dstress=GearStressIndRs(Rs, Mh, zs, Rw, Rh, h, zi, nu1, Emod1, nu2, Emod2)
+        sleeveangle=2*pi/zi;
+        Mc=Mh*zs; %Mh*i, i - gear transmission ratio 
+        nn=(1-nu1*nu1)/Emod1+(1-nu2*nu2)/Emod2;
+        dSdRs=(0.5642*(-(Mc*cos(sleeveangle))/(Rh*Rs*Rw*h*nn*pi)-(Mc*(Rh-Rs)*cos(sleeveangle))/(Rh*Rs^2*Rw*h*nn*pi)))/(sqrt(2)*sqrt((Mc*(Rh-Rs)*cos(sleeveangle))/(Rh*Rs*Rw*h*nn*pi)));
+        dstress=dSdRs;
+end
+
+
+================================================
+FILE: GearStressIndRw.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function dstress=GearStressIndRw(Rs, Mh, zs, Rw, Rh, h, zi, nu1, Emod1, nu2, Emod2)
+        sleeveangle=2*pi/zi;
+        Mc=Mh*zs; %Mh*i, i - gear transmission ratio 
+        nn=(1-nu1*nu1)/Emod1+(1-nu2*nu2)/Emod2;
+        dSdRw=-(0.5642*Mc*(Rh-Rs)*cos(sleeveangle))...
+            /(sqrt(2)*Rh*Rs*Rw^2*h*nn*pi*sqrt((Mc*(Rh-Rs)...
+            *cos(sleeveangle))/(Rh*Rs*Rw*h*nn*pi)));
+        dstress=dSdRw;
+end
+
+
+================================================
+FILE: GearTestRosenbrock.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+x0=[0.9, 0.8]';
+xopt=GearSimpleLevMar(3000, @GearRosenbrock, @GearRosenbrockJac, x0);
+GearValuePrev=GearRosenbrock(x0);
+GearValueNext=GearRosenbrock(xopt);
+
+
+================================================
+FILE: GearVolume.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function vol=GearVolume(R, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    dt=2*pi/N;
+    vol=0;
+    for i=0:(N-1)
+        alpha=i*dt+dt/2;
+        A=abs(q*cos(atan(sin(alpha*zs)...
+            /(cos(alpha*zs)+1/m))+alpha)-e*cos(alpha*zk)...
+            -R*cos(alpha))*abs(q*(((zs*sin(alpha*zs)^2)...
+            /(cos(alpha*zs)+1/m)^2+(zs*cos(alpha*zs))/(cos(alpha*zs)+1/m))...
+            /(sin(alpha*zs)^2/(cos(alpha*zs)+1/m)^2+1)+1)*cos(atan(sin(alpha*zs)...
+            /(cos(alpha*zs)+1/m))+alpha)-e*zk*cos(alpha*zk)-R*cos(alpha));    
+        vol=vol+A*dt;
+    end
+    vol=vol*h-pi*Rh*Rh*zi*h+pi*q*q*zk*h+pi*Rs*Rs*zi*h;
+end
+
+
+================================================
+FILE: GearVolumedb.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function vol=GearVolumedb(zk, b, h)
+    vol=2*pi*b*h*zk;
+end
+
+
+================================================
+FILE: GearVolumede.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function vol=GearVolumede(R, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    vol=(GearVolume(R, e+0.001, zk, zs, q, m, N, h, Rs, Rh, zi) ...
+        -GearVolume(R, e, zk, zs, q, m, N, h, Rs, Rh, zi))/0.001;
+end
+
+
+================================================
+FILE: GearVolumedh.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function vol=GearVolumedh(R, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    vol=(GearVolume(R, e, zk, zs, q, m, N, h+0.001, Rs, Rh, zi) ...
+        -GearVolume(R, e, zk, zs, q, m, N, h, Rs, Rh, zi))/0.001;
+end
+
+
+================================================
+FILE: GearVolumedm.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function vol=GearVolumedm(R, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    vol=(GearVolume(R, e, zk, zs, q, m+0.001, N, h, Rs, Rh, zi) ...
+        -GearVolume(R, e, zk, zs, q, m, N, h, Rs, Rh, zi))/0.001;
+end
+
+
+================================================
+FILE: GearVolumedq.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function vol=GearVolumedq(R, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    vol=(GearVolume(R, e, zk, zs, q+0.001, m, N, h, Rs, Rh, zi) ...
+        -GearVolume(R, e, zk, zs, q, m, N, h, Rs, Rh, zi))/0.001;
+end
+
+
+================================================
+FILE: GearVolumedRh.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function vol=GearVolumedRh(R, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    vol=(GearVolume(R, e, zk, zs, q, m, N, h, Rs, Rh+0.001, zi) ...
+        -GearVolume(R, e, zk, zs, q, m, N, h, Rs, Rh, zi))/0.001;
+end
+
+
+================================================
+FILE: GearVolumedRs.m
+================================================
+% Cycloidal Gearbox Optimization Toolkit
+% (C) Roman Kr처l
+% University of Technology and Humanities in Radom, Poland
+% December 2018
+function vol=GearVolumedRs(R, e, zk, zs, q, m, N, h, Rs, Rh, zi)
+    vol=(GearVolume(R, e, zk, zs, q, m, N, h, Rs+0.001, Rh, zi) ...
+        -GearVolume(R, e, zk, zs, q, m, N, h, Rs, Rh, zi))/0.001;
+end
+
