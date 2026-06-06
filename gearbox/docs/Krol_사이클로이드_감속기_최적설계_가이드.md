@@ -143,23 +143,23 @@ $$P(\mathbf{x}) = \begin{cases} (\text{위반량})^2 & \text{제약 위반 시} 
 
 #### 제약조건 목록
 
-| 페널티 | 코드 파일 | 제약 내용 | 한계값 |
-|---|---|---|---|
-| $P_V$ | `GearPenaltyVmin` | 체적 하한 $V \ge V_{min}$ | `MIN_VOL=1000` |
-| $P_E$ | `GearPenaltyEmin` | 편심률 하한 (언더컷 방지) | $E_{MIN}$ 수식 계산* |
-| $P_M^{min}$ | `GearPenaltyMmin` | 단폭계수 하한 $m \ge 0.5$ | `M_MIN=0.5` |
-| $P_M^{max}$ | `GearPenaltyMmax` | 단폭계수 상한 $m \le 0.85$ | `M_MAX=0.85` |
-| $P_H$ | `GearPenaltyHmin` | 두께 하한 $h \ge 0.2$ | `H_MIN=0.2` |
-| $P_{Rs}$ | `GearPenaltyRsmin` | 내부 슬리브 반경 하한 $R_S \ge 3$ | `RS_MIN=3` |
-| $P_{Rh}$ | `GearPenaltyRhmin` | 홀 반경 $\ge$ 슬리브 반경 $R_h \ge R_S$ | – |
-| $P_q$ | `GearPenaltyqmin` | 외부 슬리브 반경 $q \le \|\rho_{min}\|$ (간섭 방지) | – |
-| $P_{Rw}^{min}$ | `GearPenaltyRwmin` | $R_W \ge 2R_S$ | – |
-| $P_{Rw}^{max}$ | `GearPenaltyRwmax` | $R_W \le r - R_S$ | – |
-| $P_{\rho P}^{min,max}$ | `GearPenaltyRhopMin/Max` | 볼록부(lobe) 곡률반경 범위 | `PMIN_RHO=9`, `PMAX_RHO=100` |
-| $P_{\rho N}^{min,max}$ | `GearPenaltyRhonMin/Max` | 오목부(pit) 곡률반경 범위 | `NMIN_RHO=-2`, `NMAX_RHO=-100` |
-| $P_{\sigma EX}^{+}$ | `GearPenaltyStressExPos` | lobe 접촉응력 $\le 400$ MPa | `MAX_CONTACT_STRESS=400` |
-| $P_{\sigma EX}^{-}$ | `GearPenaltyStressExNeg` | pit 접촉응력 $\le 400$ MPa | `400` |
-| $P_{\sigma IN}$ | `GearPenaltyStressIn` | 내부 슬리브 접촉응력 $\le 400$ MPa | `400` |
+| 페널티                    | 코드 파일                    | 제약 내용                                    | 한계값                            |
+| ---------------------- | ------------------------ | ---------------------------------------- | ------------------------------ |
+| $P_V$                  | `GearPenaltyVmin`        | 체적 하한 $V \ge V_{min}$                    | `MIN_VOL=1000`                 |
+| $P_E$                  | `GearPenaltyEmin`        | 편심률 하한 (언더컷 방지)                          | $E_{MIN}$ 수식 계산*               |
+| $P_M^{min}$            | `GearPenaltyMmin`        | 단폭계수 하한 $m \ge 0.5$                      | `M_MIN=0.5`                    |
+| $P_M^{max}$            | `GearPenaltyMmax`        | 단폭계수 상한 $m \le 0.85$                     | `M_MAX=0.85`                   |
+| $P_H$                  | `GearPenaltyHmin`        | 두께 하한 $h \ge 0.2$                        | `H_MIN=0.2`                    |
+| $P_{Rs}$               | `GearPenaltyRsmin`       | 내부 슬리브 반경 하한 $R_S \ge 3$                 | `RS_MIN=3`                     |
+| $P_{Rh}$               | `GearPenaltyRhmin`       | 홀 반경 $\ge$ 슬리브 반경 $R_h \ge R_S$          | –                              |
+| $P_q$                  | `GearPenaltyqmin`        | 외부 슬리브 반경 $q \le \|\rho_{min}\|$ (간섭 방지) | –                              |
+| $P_{Rw}^{min}$         | `GearPenaltyRwmin`       | $R_W \ge 2R_S$                           | –                              |
+| $P_{Rw}^{max}$         | `GearPenaltyRwmax`       | $R_W \le r - R_S$                        | –                              |
+| $P_{\rho P}^{min,max}$ | `GearPenaltyRhopMin/Max` | 볼록부(lobe) 곡률반경 범위                        | `PMIN_RHO=9`, `PMAX_RHO=100`   |
+| $P_{\rho N}^{min,max}$ | `GearPenaltyRhonMin/Max` | 오목부(pit) 곡률반경 범위                         | `NMIN_RHO=-2`, `NMAX_RHO=-100` |
+| $P_{\sigma EX}^{+}$    | `GearPenaltyStressExPos` | lobe 접촉응력 $\le 400$ MPa                  | `MAX_CONTACT_STRESS=400`       |
+| $P_{\sigma EX}^{-}$    | `GearPenaltyStressExNeg` | pit 접촉응력 $\le 400$ MPa                   | `400`                          |
+| $P_{\sigma IN}$        | `GearPenaltyStressIn`    | 내부 슬리브 접촉응력 $\le 400$ MPa                | `400`                          |
 
 \* $E_{MIN} = \dfrac{q(z_k+1)}{3\sqrt{3}\,z_k}\sqrt{\dfrac{z_k+1}{z_k-1}}\sqrt{\dfrac{m^2}{1-m^2}}$ (`GearPenaltyEmin.m`)
 
